@@ -75,7 +75,7 @@ def handle_file_menu(current_text, current_file, text_loaded, unsaved_changes, r
             if unsaved_changes:
                 answer = input("Unsaved changes exist. Save before new? (y/n): ").strip().lower()
                 if answer == "y":
-                    target = current_file if current_file else input("Enter save path: ").strip()
+                    target = current_file if current_file else input("Enter save path: ")
                     try:
                         save_to_file(target, current_text)
                         current_file = target
@@ -290,7 +290,7 @@ def confirm_exit(current_text, current_file, text_loaded, unsaved_changes, recen
     if not unsaved_changes:
         print("No unsaved changes. Exiting.")
         append_log(LOG_FILE, "EXIT: no unsaved changes")
-        return current_text, current_file, text_loaded, False, recent_files
+        return current_text, current_file, text_loaded, True, recent_files
 
     response = input(
         "You have unsaved changes. Save before exiting? (y/n/skip): "
@@ -300,7 +300,7 @@ def confirm_exit(current_text, current_file, text_loaded, unsaved_changes, recen
         if current_file:
             try:
                 save_to_file(current_file, current_text)
-                unsaved_changes = False
+                unsaved_changes = True
                 append_log(LOG_FILE, f"SAVED ON EXIT: {current_file}")
                 print("Saved.")
             except Exception as e:
