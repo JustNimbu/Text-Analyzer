@@ -57,8 +57,21 @@ def remove_extra_spaces(text):
 def word_occurrence(text, word):
     if not word:
         return 0
-    return text.lower().split().count(word.lower())
-
+    search_text = text.lower()
+    search_word = word.lower()
+    count = 0
+    start = 0
+    while True:
+        idx = search_text.find(search_word,start)
+        if idx == -1:
+            break
+        before_ok = idx == 0 or not search_text[idx - 1].isalnum()
+        after_idx = idx + len(search_word)
+        after_ok = after_idx == len(search_text) or not search_text[after_idx].isalnum()
+        if before_ok and after_ok:
+            count += 1
+        start = idx + 1
+    return count
 
 def find_word_positions(text, word, case_sensitive=False):
     if not word:
@@ -71,7 +84,11 @@ def find_word_positions(text, word, case_sensitive=False):
         idx = search_text.find(search_word, start)
         if idx == -1:
             break
-        positions.append(idx)
+        before_ok = idx == 0 or not search_text[idx - 1].isalnum()
+        after_idx = idx + len(search_word)
+        after_ok = after_idx == len(search_text) or not search_text[after_idx].isalnum()
+        if before_ok and after_ok:
+            positions.append(idx)
         start = idx + 1
     return positions
 
@@ -88,7 +105,20 @@ def replace_word(text, old_word, new_word, only_first=False, case_sensitive=Fals
             return text
         return text[:idx] + new_word + text[idx + len(old_word):]
 
-    return text.replace(old_word, new_word)
+    search_text = text.lower()
+    search_word = old_word.lower()
+    result = []
+    start = 0
+    while True:
+        idx = search_text.find(search_word,start)
+        if idx == -1:
+            result.append(text[start:])
+            break
+        result.append(text[start:idx])
+        result.append(new_word)
+        start = idx + len(old_word)
+    return "".join(result)
+
 
 
 def _replace_case_sensitive(text, old_word, new_word, only_first):
@@ -136,15 +166,22 @@ def add_recent_file(recent_list, path, max_items=5):
     return recent_list[:max_items]
 
 
-def report_stats(text):
+def report_characters(text):
     if not text:
         return "No text loaded."
-    return (
-        f"Characters: {count_characters(text)}\n"
-        f"Words: {count_words(text)}\n"
-        f"Lines: {count_lines(text)}"
-    )
+    return (f"Characters: {count_characters(text)}")        
 
+
+def report_words(text):
+    if not text:
+        return "No text loaded."
+    return (f"Words: {count_words(text)}")
+
+
+def report_lines(text):
+    if not text:
+        return "No text loaded."
+    return (f"Lines: {count_lines(text)}")
 
 def sanitize_path_for_display(path):
     if not path:

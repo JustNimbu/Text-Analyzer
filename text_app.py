@@ -17,7 +17,9 @@ from text_ops import (
     insert_at_position,
     show_current_text,
     add_recent_file,
-    report_stats,
+    report_characters,
+    report_words,
+    report_lines,
     sanitize_path_for_display,
 )
 
@@ -91,7 +93,6 @@ def handle_file_menu(current_text, current_file, text_loaded, unsaved_changes, r
             current_file = None
             text_loaded = True
             unsaved_changes = False
-            recent_files = []
             append_log(LOG_FILE, "NEW: typed text")
             print("New text set.")
 
@@ -199,13 +200,13 @@ def handle_tools_menu(current_text, current_file, text_loaded, unsaved_changes):
             print("---------------------\n")
 
         elif choice == "2":
-            print("\n" + report_stats(current_text))
+            print("\n" + report_characters(current_text))
 
         elif choice == "3":
-            print("\n" + report_stats(current_text))
+            print("\n" + report_words(current_text))
 
         elif choice == "4":
-            print("\n" + report_stats(current_text))
+            print("\n" + report_lines(current_text))
 
         elif choice == "5":
             fmt = input("Enter format (upper/lower/title): ").strip()
@@ -254,7 +255,7 @@ def handle_tools_menu(current_text, current_file, text_loaded, unsaved_changes):
                 append_log(LOG_FILE, f"EDIT: replaced '{old}' with '{new}'")
 
         elif choice == "10":
-            added = input("Text to insert at end: ").strip()
+            added = input("Text to insert at end: ").rstrip()
             result = insert_at_end(current_text, added)
             print("\nUpdated text:\n", result)
             keep = input("Keep this change? (y/n): ").strip().lower()
@@ -265,7 +266,7 @@ def handle_tools_menu(current_text, current_file, text_loaded, unsaved_changes):
 
         elif choice == "11":
             pos = input("Insert at character position: ").strip()
-            added = input("Text to insert: ").strip()
+            added = input("Text to insert: ").rstrip()
             try:
                 result = insert_at_position(current_text, added, pos)
                 print("\nUpdated text:\n", result)
@@ -287,42 +288,38 @@ def handle_tools_menu(current_text, current_file, text_loaded, unsaved_changes):
 
 
 def confirm_exit(current_text, current_file, text_loaded, unsaved_changes, recent_files):
+    """Returns (current_text, current_file, text_loaded, unsaved_changes, recent_files, should_exit)."""
     if not unsaved_changes:
         print("No unsaved changes. Exiting.")
         append_log(LOG_FILE, "EXIT: no unsaved changes")
-        return current_text, current_file, text_loaded, True, recent_files
+        return current_text, current_file, text_loaded, False, recent_files, True
 
     response = input(
         "You have unsaved changes. Save before exiting? (y/n/skip): "
     ).strip().lower()
 
     if response == "y":
-        if current_file:
-            try:
-                save_to_file(current_file, current_text)
-                unsaved_changes = True
-                append_log(LOG_FILE, f"SAVED ON EXIT: {current_file}")
-                print("Saved.")
-            except Exception as e:
-                print("Could not save:", e)
-                append_log(LOG_FILE, f"SAVE ON EXIT FAILED: {current_file} - {e}")
-        else:
-            path = input("Enter save path: ").strip()
-            if path:
-                try:
-                    save_to_file(path, current_text)
-                    unsaved_changes = False
-                    append_log(LOG_FILE, f"SAVED ON EXIT: {path}")
-                    print("Saved.")
-                except Exception as e:
-                    print("Could not save:", e)
-                    append_log(LOG_FILE, f"SAVE ON EXIT FAILED: {path} - {e}")
-        return current_text, current_file, text_loaded, False, recent_files
+        target = current_file
+        if not target:
+            target = input("Enter save path: ").strip()
+            if not target:
+                print("No path provided. Not exiting.")
+                return current_text, current_file, text_loaded, True, recent_files, False
+        try:
+            save_to_file(target, current_text)
+            current_file = target
+            unsaved_changes = False
+            append_log(LOG_FILE, f"SAVED ON EXIT: {target}")
+            print("Saved.")
+            return current_text, current_file, text_loaded, unsaved_changes, recent_files, True
+        except Exception as e:
+            print("Could not save:", e)
+            append_log(LOG_FILE, f"SAVE ON EXIT FAILED: {target} - {e}")
+            return current_text, current_file, text_loaded, True, recent_files, False
 
     print("Exiting without saving.")
     append_log(LOG_FILE, "EXIT: unsaved changes discarded")
-    return "", None, False, False, recent_files
-
+    return "", None, False, False, recent_files, True
 
 def main():
     current_text = ""
@@ -350,12 +347,11 @@ def main():
             )
 
         elif main_choice == "3":
-            current_text, current_file, text_loaded, unsaved_changes, recent_files = (
+            current_text, current_file, text_loaded, unsaved_changes, recent_files, should_exit = (
                 confirm_exit(current_text, current_file, text_loaded, unsaved_changes, recent_files)
             )
-            if not text_loaded:
+            if should_exit:
                 break
-
         else:
             print("Invalid choice.")
 
