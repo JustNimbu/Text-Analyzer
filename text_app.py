@@ -352,6 +352,7 @@ def main():
             )
             if should_exit:
                 break
+        
         else:
             print("Invalid choice.")
 
