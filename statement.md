@@ -47,8 +47,8 @@ This project addresses both needs. It provides a lightweight, menu-driven text e
 1. **Menu-driven navigation.** A main menu leads to File and Edit / Tools menus, so the app can be used without memorizing commands.
 2. **File management.** Create new text, open files by path or from the recent list, and save or save-as, with prompts before unsaved work is discarded.
 3. **Text statistics.** Report character, word, and line counts for the current text.
-4. **Search tools.** Count how often a word occurs and list every character position where it appears, with optional case sensitivity.
-5. **Editing tools.** Convert case, remove extra whitespace, replace words (first or all occurrences), and insert text at the end or at a chosen position.
+4. **Search tools.** Count how often a word occurs (always case-insensitive) and list every character position where it appears, with an optional case-sensitive mode for the position search.
+5. **Editing tools.** Convert case, remove extra whitespace, replace words (first or all occurrences, optional case sensitivity), and insert text at the end or at a chosen position.
 6. **Preview and confirm.** Each change is shown first and applied only if the user confirms, so accidental edits can be avoided.
 7. **Recent files.** Quick reopening of files from the current session, showing only file names for a cleaner display.
 8. **Activity log.** A running record of actions in `text_editor_activity.log` that never interrupts the app if writing to it fails.

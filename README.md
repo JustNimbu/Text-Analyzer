@@ -300,14 +300,15 @@ Actions such as opening, saving, and editing are appended to the log file (defau
 | `load_from_file(path)` / `save_to_file(path, text)` | Read and write UTF-8 files |
 | `append_log(log_path, message)` | Append a line to the log file |
 | `count_characters`, `count_words`, `count_lines` | Basic statistics |
+| `report_characters`, `report_words`, `report_lines` | Format a single stat as a one-line report (or "No text loaded.") |
 | `convert_case(text, case_type)` | Upper, lower, or title case |
 | `remove_extra_spaces(text)` | Normalize whitespace |
 | `word_occurrence(text, word)` | Count whole-word matches (case-insensitive) |
-| `find_word_positions(text, word, case_sensitive)` | Return start indexes of matches |
+| `find_word_positions(text, word, case_sensitive)` | Return start indexes of whole-word matches |
 | `replace_word(text, old, new, only_first, case_sensitive)` | Replace occurrences |
-| `insert_at_end`, `insert_at_position` | Insert text (position is clamped to the valid range) |
+| `insert_at_end(text, new_text)` | Append text to the end |
+| `insert_at_position(text, new_text, position)` | Insert text at a character index (position is clamped to the valid range) |
 | `add_recent_file(recent_list, path, max_items=5)` | Maintain the recent-files list |
-| `report_stats(text)` | Format the character/word/line summary |
 | `sanitize_path_for_display(path)` | Show only the file name, not the full path |
 
 ---
@@ -330,13 +331,9 @@ Actions such as opening, saving, and editing are appended to the log file (defau
 ## Known limitations
 
 - **Single-line input:** "New text" and "Insert text" use `input()`, so they read one line at a time. To work with multi-line text, open a file.
-- **Whitespace:** "Remove extra spaces" also collapses newlines, so multi-line text becomes one line. Inserted text is also stripped of leading/trailing spaces.
-- **Word count/occurrence** split on whitespace, so a word followed by punctuation (e.g. `hello,`) won't match `hello`.
-- **Find positions** does substring matching, so it also finds a word inside longer words.
-- **Replace (case-insensitive, replace all):** currently uses a plain `str.replace`, which is case-sensitive. Replace-first and the case-sensitive path behave as expected.
-- **Recent files** are kept in memory only and are reset when you choose "New text" or restart the app.
-- **Statistics:** menu options 2, 3, and 4 all display the same combined summary.
-- **Exit:** any answer other than `y` at the exit prompt discards unsaved changes.expected.
-- **Recent files** are kept in memory only and are reset when you choose "New text" or restart the app.
-- **Statistics:** menu options 2, 3, and 4 all display the same combined summary.
-- **Exit:** any answer other than `y` at the exit prompt discards unsaved changes.
+- **Whitespace:** "Remove extra spaces" also collapses newlines, so multi-line text becomes one line.
+- **Insert text:** only *trailing* whitespace is stripped from text you insert (via `rstrip()`); leading whitespace is preserved.
+- **Word occurrence / find positions:** matching treats a match as a "whole word" if the characters immediately before and after it are not alphanumeric. This correctly skips "category" when searching for "cat", and correctly matches "cat," or "cat!" since punctuation counts as a boundary — but it is a simple ASCII-style check, not a full Unicode word-boundary implementation.
+- **Recent files:** the list only exists for the current run (it is not saved to disk) and is **not** cleared when you choose "New text" — it persists until you restart the app.
+- **Statistics:** menu options 2, 3, and 4 each print a single number (characters, words, or lines respectively) — there is no combined summary view.
+- **Exit:** any answer other than `y` at the exit prompt — including `skip` — discards unsaved changes and exits; `skip` is not currently handled as a separate "cancel" option.
